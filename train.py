@@ -65,7 +65,9 @@ def train_net(net,
         with tqdm(total=n_train, desc=f'Epoch {epoch + 1}/{epochs}', unit='img') as pbar:
             for batch in train_loader:
                 imgs = batch['image']
+                # imgs = imgs.squeeze(1)
                 true_masks = batch['mask']
+                true_masks = true_masks.squeeze(1) # debug
                 assert imgs.shape[1] == net.n_channels, \
                     f'Network has been defined with {net.n_channels} input channels, ' \
                     f'but loaded images have {imgs.shape[1]} channels. Please check that ' \
@@ -134,6 +136,10 @@ def get_args():
                         help='Learning rate', dest='lr')
     parser.add_argument('-f', '--load', dest='load', type=str, default=False,
                         help='Load model from a .pth file')
+    parser.add_argument('-n_c', '--num-channel', metavar='NC', type=int, nargs='?', default=1,
+                        help='number of channels', dest='num_channel')
+    parser.add_argument('-n_cl', '--num-class', metavar='NCL', type=int, nargs='?', default=3,
+                        help='number of classes', dest='num_class')
     parser.add_argument('-s', '--scale', dest='scale', type=float, default=0.5,
                         help='Downscaling factor of the images')
     parser.add_argument('-v', '--validation', dest='val', type=float, default=10.0,
@@ -154,7 +160,7 @@ if __name__ == '__main__':
     #   - For 1 class and background, use n_classes=1
     #   - For 2 classes, use n_classes=1
     #   - For N > 2 classes, use n_classes=N
-    net = UNet(n_channels=3, n_classes=1, bilinear=True)
+    net = UNet(n_channels=args.num_channel, n_classes=args.num_class, bilinear=False) # default True
     logging.info(f'Network:\n'
                  f'\t{net.n_channels} input channels\n'
                  f'\t{net.n_classes} output channels (classes)\n'
